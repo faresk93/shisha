@@ -6,115 +6,129 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-    :root {
-        --flavor-color: #ff4d6d;
-        --coal-heat: 0.5;
-        --smoke-opacity: 0.6;
-    }
+:root{
+  --flavor:#ff4d6d;
+  --heat:0.5;
+  --smoke:0.6;
+}
 
-    body {
-        margin: 0;
-        background: radial-gradient(circle at top, #1a1a1a, #050505);
-        font-family: "Inter", system-ui, sans-serif;
-        color: #eaeaea;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-height: 100vh;
-    }
+*{box-sizing:border-box}
 
-    h1 {
-        margin: 30px 0 10px;
-        font-weight: 600;
-        letter-spacing: 1px;
-        text-align: center;
-    }
+body{
+  margin:0;
+  font-family:system-ui,Inter,Arial;
+  background:radial-gradient(circle at top,#1b1b1b,#050505);
+  color:#eee;
+}
 
-    .container {
-        display: grid;
-        grid-template-columns: 320px 1fr;
-        gap: 30px;
-        width: min(1100px, 95%);
-        margin-top: 20px;
-    }
+h1{
+  text-align:center;
+  font-weight:600;
+  letter-spacing:.8px;
+  margin:20px 10px;
+}
 
-    /* Controls */
-    .controls {
-        background: rgba(255,255,255,0.04);
-        border-radius: 16px;
-        padding: 20px;
-        backdrop-filter: blur(12px);
-        box-shadow: 0 0 40px rgba(0,0,0,0.4);
-    }
+.app{
+  max-width:1100px;
+  margin:auto;
+  padding:10px;
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:20px;
+}
 
-    .control {
-        margin-bottom: 18px;
-    }
+@media(min-width:900px){
+  .app{
+    grid-template-columns: 360px 1fr;
+    align-items:center;
+  }
+}
 
-    label {
-        display: block;
-        font-size: 13px;
-        opacity: 0.8;
-        margin-bottom: 6px;
-    }
+/* Controls */
+.controls{
+  background:rgba(255,255,255,.05);
+  border-radius:18px;
+  padding:20px;
+  backdrop-filter:blur(12px);
+  box-shadow:0 0 50px rgba(0,0,0,.4);
+}
 
-    input[type="range"], select {
-        width: 100%;
-    }
+.control{
+  margin-bottom:18px;
+}
 
-    select {
-        background: #111;
-        color: white;
-        border-radius: 8px;
-        padding: 6px;
-        border: none;
-    }
+label{
+  font-size:13px;
+  opacity:.8;
+  display:block;
+  margin-bottom:6px;
+}
 
-    /* Simulation */
-    .simulation {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+input,select{
+  width:100%;
+}
 
-    svg {
-        width: 100%;
-        max-width: 420px;
-        overflow: visible;
-    }
+select{
+  background:#111;
+  color:white;
+  border:none;
+  border-radius:8px;
+  padding:6px;
+}
 
-    /* Coal */
-    .coal {
-        filter: drop-shadow(0 0 calc(30px * var(--coal-heat)) rgba(255,80,0,0.9));
-        transition: fill 0.4s, filter 0.4s;
-    }
+/* Simulation */
+.simulation{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 
-    /* Bowl liquid */
-    .liquid {
-        fill: var(--flavor-color);
-        transition: fill 0.6s;
-        opacity: 0.85;
-    }
+svg{
+  width:100%;
+  max-width:360px;
+  height:auto;
+}
 
-    /* Smoke */
-    .smoke {
-        fill: none;
-        stroke: rgba(200,200,200,var(--smoke-opacity));
-        stroke-width: 3;
-        animation: smoke 4s infinite ease-in-out;
-    }
+/* Coal */
+.coal{
+  filter:drop-shadow(0 0 calc(35px * var(--heat)) rgba(255,80,0,.9));
+  transition:.4s;
+}
 
-    @keyframes smoke {
-        0% { transform: translateY(0); opacity: 0; }
-        30% { opacity: 0.6; }
-        100% { transform: translateY(-80px); opacity: 0; }
-    }
+/* Glass */
+.glass{
+  fill:url(#glassGrad);
+  stroke:rgba(255,255,255,.25);
+  stroke-width:2;
+}
 
-    footer {
-        opacity: 0.4;
-        font-size: 12px;
-        margin: 20px 0;
-    }
+/* Liquid */
+.liquid{
+  fill:var(--flavor);
+  opacity:.85;
+  transition:fill .6s;
+}
+
+/* Smoke */
+.smoke{
+  fill:none;
+  stroke:rgba(220,220,220,var(--smoke));
+  stroke-width:3;
+  animation:smoke 4s infinite ease-in-out;
+}
+
+@keyframes smoke{
+  0%{opacity:0;transform:translateY(0)}
+  30%{opacity:.6}
+  100%{opacity:0;transform:translateY(-90px)}
+}
+
+footer{
+  text-align:center;
+  font-size:12px;
+  opacity:.4;
+  margin:20px 0;
+}
 </style>
 </head>
 
@@ -122,112 +136,102 @@
 
 <h1>Ahmed Chayech Shisha Simulation</h1>
 
-<div class="container">
+<div class="app">
 
-    <!-- Controls -->
-    <div class="controls">
-
-        <div class="control">
-            <label>🔥 Coal Temperature</label>
-            <input type="range" min="0" max="100" value="50" id="coalTemp">
-        </div>
-
-        <div class="control">
-            <label>🌈 Flavor</label>
-            <select id="flavor">
-                <option value="#ff4d6d">Double Apple</option>
-                <option value="#7b2cbf">Blueberry</option>
-                <option value="#2ec4b6">Mint</option>
-                <option value="#ff9f1c">Peach</option>
-                <option value="#e63946">Cherry</option>
-            </select>
-        </div>
-
-        <div class="control">
-            <label>💨 Smoke Density</label>
-            <input type="range" min="10" max="100" value="60" id="smokeDensity">
-        </div>
-
-        <div class="control">
-            <label>🌬 Pull Strength</label>
-            <input type="range" min="1" max="10" value="5" id="pull">
-        </div>
-
+  <div class="controls">
+    <div class="control">
+      <label>🔥 Coal Temperature</label>
+      <input type="range" min="0" max="100" value="50" id="coalTemp">
     </div>
 
-    <!-- Simulation -->
-    <div class="simulation">
-        <svg viewBox="0 0 200 420">
-
-            <!-- Smoke -->
-            <path class="smoke" d="M100 40 C80 20, 120 10, 100 -10"/>
-            <path class="smoke" d="M90 50 C70 30, 110 15, 90 -5"/>
-
-            <!-- Coal -->
-            <circle cx="100" cy="60" r="18"
-                    class="coal"
-                    fill="rgb(255,80,0)"/>
-
-            <!-- Bowl -->
-            <path d="M60 80 Q100 40 140 80 Z"
-                  fill="#333"/>
-
-            <!-- Liquid -->
-            <ellipse cx="100" cy="190" rx="38" ry="12"
-                     class="liquid"/>
-
-            <!-- Glass -->
-            <path d="M60 80 L80 360 Q100 390 120 360 L140 80 Z"
-                  fill="rgba(255,255,255,0.08)"
-                  stroke="rgba(255,255,255,0.15)"
-                  stroke-width="2"/>
-
-            <!-- Stem -->
-            <rect x="96" y="80" width="8" height="160" fill="#999"/>
-
-            <!-- Hose -->
-            <path d="M120 300 C180 320, 220 300, 260 310"
-                  stroke="#666" stroke-width="6" fill="none"/>
-
-        </svg>
+    <div class="control">
+      <label>🌈 Flavor</label>
+      <select id="flavor">
+        <option value="#ff4d6d">Double Apple</option>
+        <option value="#7b2cbf">Blueberry</option>
+        <option value="#2ec4b6">Mint</option>
+        <option value="#ff9f1c">Peach</option>
+        <option value="#e63946">Cherry</option>
+      </select>
     </div>
+
+    <div class="control">
+      <label>💨 Smoke Density</label>
+      <input type="range" min="10" max="100" value="60" id="smoke">
+    </div>
+
+    <div class="control">
+      <label>🌬 Pull Strength</label>
+      <input type="range" min="1" max="10" value="5" id="pull">
+    </div>
+  </div>
+
+  <div class="simulation">
+    <svg viewBox="0 0 200 420">
+
+      <defs>
+        <linearGradient id="glassGrad" x1="0" x2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,.12)"/>
+          <stop offset="50%" stop-color="rgba(255,255,255,.03)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,.15)"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Smoke -->
+      <path class="smoke" d="M100 40 C80 20,120 10,100 -20"/>
+      <path class="smoke" d="M90 55 C70 35,110 15,90 -15"/>
+
+      <!-- Coal -->
+      <circle cx="100" cy="65" r="18"
+        class="coal"
+        fill="rgb(255,90,0)"/>
+
+      <!-- Bowl -->
+      <path d="M60 85 Q100 40 140 85 Z" fill="#2c2c2c"/>
+
+      <!-- Stem -->
+      <rect x="96" y="85" width="8" height="150" fill="#aaa"/>
+
+      <!-- Liquid -->
+      <ellipse cx="100" cy="240" rx="40" ry="12" class="liquid"/>
+
+      <!-- Glass Base -->
+      <path class="glass"
+        d="M60 85 L78 360 Q100 395 122 360 L140 85 Z"/>
+
+      <!-- Hose -->
+      <path d="M120 320 C180 340,230 320,280 330"
+        stroke="#666" stroke-width="6" fill="none"/>
+    </svg>
+  </div>
 
 </div>
 
-<footer>Scientific & Visual Simulation — Educational Purpose</footer>
+<footer>Educational visual simulation</footer>
 
 <script>
-    const coalTemp = document.getElementById("coalTemp");
-    const flavor = document.getElementById("flavor");
-    const smokeDensity = document.getElementById("smokeDensity");
-    const pull = document.getElementById("pull");
+const root=document.documentElement;
+const coal=document.querySelector(".coal");
 
-    const root = document.documentElement;
-    const coal = document.querySelector(".coal");
+coalTemp.oninput=e=>{
+  const h=e.target.value/100;
+  root.style.setProperty("--heat",h);
+  coal.setAttribute("fill",`rgb(${200+h*55},${80+h*30},0)`);
+};
 
-    coalTemp.addEventListener("input", e => {
-        const heat = e.target.value / 100;
-        root.style.setProperty("--coal-heat", heat);
-        coal.setAttribute(
-            "fill",
-            `rgb(${200 + heat*55}, ${80 + heat*30}, 0)`
-        );
-    });
+flavor.onchange=e=>{
+  root.style.setProperty("--flavor",e.target.value);
+};
 
-    flavor.addEventListener("change", e => {
-        root.style.setProperty("--flavor-color", e.target.value);
-    });
+smoke.oninput=e=>{
+  root.style.setProperty("--smoke",e.target.value/100);
+};
 
-    smokeDensity.addEventListener("input", e => {
-        root.style.setProperty("--smoke-opacity", e.target.value / 100);
-    });
-
-    pull.addEventListener("input", e => {
-        const speed = 6 - e.target.value * 0.4;
-        document.querySelectorAll(".smoke").forEach(s => {
-            s.style.animationDuration = speed + "s";
-        });
-    });
+pull.oninput=e=>{
+  const d=6-e.target.value*.4;
+  document.querySelectorAll(".smoke")
+    .forEach(s=>s.style.animationDuration=d+"s");
+};
 </script>
 
 </body>

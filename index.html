@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shisha (Hookah) Scientific Simulation</title>
+  <style>
+    /* =====================
+       GLOBAL STYLES
+       ===================== */
+    body {
+      margin: 0;
+      font-family: "Inter", Arial, sans-serif;
+      background: #0f1419;
+      color: #e5e7eb;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      color: #cbd5e1;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    input[type=range], select {
+      width: 100%;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      height: 100vh;
+    }
+
+    .panel {
+      padding: 16px;
+      box-sizing: border-box;
+      border-right: 1px solid #1f2933;
+      overflow-y: auto;
+    }
+
+    .panel.right {
+      border-right: none;
+      border-left: 1px solid #1f2933;
+    }
+
+    .control-group {
+      margin-bottom: 16px;
+    }
+
+    .control-group small {
+      display: block;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      margin-top: 4px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #2563eb;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    /* =====================
+       CENTER SCHEMATIC
+       ===================== */
+    .schematic {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .shisha {
+      position: relative;
+      width: 200px;
+      height: 520px;
+    }
+
+    .coal {
+      width: 60px;
+      height: 20px;
+      background: #553311;
+      border-radius: 4px;
+      margin: 0 auto;
+      box-shadow: 0 0 10px rgba(255,140,0,0.2);
+      transition: box-shadow 0.3s, background 0.3s;
+    }
+
+    .bowl {
+      width: 100px;
+      height: 40px;
+      background: #374151;
+      border-radius: 0 0 10px 10px;
+      margin: 6px auto;
+    }
+
+    .stem {
+      width: 16px;
+      height: 240px;
+      background: #6b7280;
+      margin: 0 auto;
+    }
+
+    .water {
+      width: 120px;
+      height: 120px;
+      background: rgba(56,189,248,0.25);
+      border-radius: 0 0 60px 60px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .smoke {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      background: rgba(200,200,200,0.2);
+      border-radius: 50%;
+      transform: translateX(-50%);
+      animation: smokeUp 2s infinite ease-in-out;
+      opacity: 0;
+    }
+
+    @keyframes smokeUp {
+      0% { transform: translate(-50%,0) scale(0.6); opacity: 0; }
+      30% { opacity: 0.6; }
+      100% { transform: translate(-50%,-200px) scale(1.2); opacity: 0; }
+    }
+
+    /* =====================
+       METRICS
+       ===================== */
+    .metric {
+      background: #020617;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .metric span {
+      float: right;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- LEFT PANEL : CONTROLS -->
+  <div class="panel">
+    <h2>Controls</h2>
+
+    <div class="control-group">
+      <label>Coal Temperature (°C)</label>
+      <input type="range" min="300" max="700" value="450" id="coalTemp">
+      <small>Controls radiant heat transferred to the bowl.</small>
+    </div>
+
+    <div class="control-group">
+      <label>Tobacco Moisture (%)</label>
+      <input type="range" min="10" max="60" value="35" id="moisture">
+      <small>Higher moisture favors vaporization over combustion.</small>
+    </div>
+
+    <div class="control-group">
+      <label>Tobacco Density</label>
+      <input type="range" min="1" max="10" value="5" id="density">
+      <small>Affects airflow resistance and heat retention.</small>
+    </div>
+
+    <div class="control-group">
+      <label>Flavor Type</label>
+      <select id="flavor">
+        <option value="1">Light / Mint</option>
+        <option value="1.2">Fruity</option>
+        <option value="1.4">Creamy</option>
+        <option value="1.6">Dark / Spiced</option>
+      </select>
+      <small>Influences perceived smoothness and smoke density.</small>
+    </div>
+
+    <div class="control-group">
+      <label>Airflow Resistance</label>
+      <input type="range" min="1" max="10" value="5" id="airflow">
+      <small>Simulates draw tightness.</small>
+    </div>
+
+    <div class="control-group">
+      <label>Water Level</label>
+      <input type="range" min="50" max="120" value="90" id="waterLevel">
+      <small>Higher water increases filtration and cooling.</small>
+    </div>
+
+    <div class="control-group">
+      <label>Water Temperature (°C)</label>
+      <input type="range" min="5" max="40" value="20" id="waterTemp">
+      <small>Colder water cools smoke more efficiently.</small>
+    </div>
+
+    <button id="puffBtn">Test Puff</button>
+  </div>
+
+  <!-- CENTER PANEL : SCHEMATIC -->
+  <div class="schematic">
+    <div class="shisha">
+      <div class="coal" id="coal"></div>
+      <div class="bowl"></div>
+      <div class="stem"></div>
+      <div class="water" id="water">
+        <div class="smoke" id="smoke"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL : METRICS -->
+  <div class="panel right">
+    <h2>Scientific Metrics</h2>
+
+    <div class="metric">Heat Flux <span id="heatFlux">0</span></div>
+    <div class="metric">Combustion Ratio <span id="combustion">0</span></div>
+    <div class="metric">Smoke Density <span id="smokeDensity">0</span></div>
+    <div class="metric">Harshness Index <span id="harshness">0</span></div>
+    <div class="metric">Flavor Preservation <span id="flavorPres">0</span></div>
+  </div>
+
+</div>
+
+<script>
+  // =====================
+  // ELEMENT REFERENCES
+  // =====================
+  const coalTemp = document.getElementById('coalTemp');
+  const moisture = document.getElementById('moisture');
+  const density = document.getElementById('density');
+  const flavor = document.getElementById('flavor');
+  const airflow = document.getElementById('airflow');
+  const waterLevel = document.getElementById('waterLevel');
+  const waterTemp = document.getElementById('waterTemp');
+
+  const coal = document.getElementById('coal');
+  const smoke = document.getElementById('smoke');
+  const water = document.getElementById('water');
+
+  const heatFluxEl = document.getElementById('heatFlux');
+  const combustionEl = document.getElementById('combustion');
+  const smokeDensityEl = document.getElementById('smokeDensity');
+  const harshnessEl = document.getElementById('harshness');
+  const flavorPresEl = document.getElementById('flavorPres');
+
+  // =====================
+  // UPDATE FUNCTIONS
+  // =====================
+  function updateCoalVisual() {
+    const t = coalTemp.value;
+    const glow = (t - 300) / 400;
+    coal.style.background = `rgb(${120 + glow*135}, ${60}, ${20})`;
+    coal.style.boxShadow = `0 0 ${10 + glow*30}px rgba(255,140,0,${glow})`;
+  }
+
+  function computeSimulation() {
+    const T = +coalTemp.value;
+    const M = +moisture.value;
+    const D = +density.value;
+    const F = +flavor.value;
+    const A = +airflow.value;
+    const WL = +waterLevel.value;
+    const WT = +waterTemp.value;
+
+    // Simplified educational formulas (relative scales)
+    const heatFlux = (T * A) / (D * 10);
+    const combustion = Math.max(0, (T - 400) / 300) * (1 - M / 100);
+    const smokeDensity = (heatFlux * F * (M / 50)) / 10;
+    const harshness = combustion * (A / 10) * (WT / 40);
+    const flavorPres = Math.max(0, 1 - combustion) * (WL / 120);
+
+    heatFluxEl.textContent = heatFlux.toFixed(2);
+    combustionEl.textContent = combustion.toFixed(2);
+    smokeDensityEl.textContent = smokeDensity.toFixed(2);
+    harshnessEl.textContent = harshness.toFixed(2);
+    flavorPresEl.textContent = flavorPres.toFixed(2);
+  }
+
+  function updateWater() {
+    water.style.height = waterLevel.value + 'px';
+  }
+
+  function puff() {
+    smoke.style.opacity = 1;
+    smoke.style.animation = 'none';
+    smoke.offsetHeight; // reset
+    smoke.style.animation = 'smokeUp 2s ease-in-out';
+  }
+
+  // =====================
+  // EVENT LISTENERS
+  // =====================
+  document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', () => {
+      updateCoalVisual();
+      updateWater();
+      computeSimulation();
+    });
+  });
+
+  document.getElementById('puffBtn').addEventListener('click', puff);
+
+  // Initial render
+  updateCoalVisual();
+  updateWater();
+  computeSimulation();
+</script>
+
+</body>
+</html>

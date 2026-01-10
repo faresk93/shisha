@@ -3,235 +3,717 @@
 <head>
 <meta charset="UTF-8" />
 <title>Ahmed Chayech Shisha Simulation</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <style>
-:root{
-  --flavor:#ff4d6d;
-  --heat:0.5;
-  --smoke:0.6;
+:root {
+  --flavor: #ff4d6d;
+  --flavor-glow: rgba(255, 77, 109, 0.6);
+  --heat: 0.5;
+  --smoke: 0.6;
+  --pull-speed: 4s;
 }
 
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:system-ui,Inter,Arial;
-  background:radial-gradient(circle at top,#1b1b1b,#050505);
-  color:#eee;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-h1{
-  text-align:center;
-  font-weight:600;
-  letter-spacing:.8px;
-  margin:20px 10px;
+html, body {
+  height: 100%;
+  overflow: hidden;
+  touch-action: manipulation;
 }
 
-.app{
-  max-width:1100px;
-  margin:auto;
-  padding:10px;
-  display:grid;
-  grid-template-columns: 1fr;
-  gap:20px;
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 50%, #16213e 100%);
+  color: #eee;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
-@media(min-width:900px){
-  .app{
-    grid-template-columns: 360px 1fr;
-    align-items:center;
+/* Animated background particles */
+.bg-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: float 15s infinite ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+}
+
+/* Header */
+header {
+  text-align: center;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+h1 {
+  font-size: clamp(14px, 4vw, 22px);
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, #a78bfa 50%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Main app container */
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  padding: 8px;
+  gap: 8px;
+  overflow: hidden;
+  z-index: 5;
+  min-height: 0;
+}
+
+/* Simulation area */
+.simulation {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  min-width: 0;
+}
+
+.simulation svg {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100dvh - 120px);
+  object-fit: contain;
+}
+
+/* Controls panel */
+.controls {
+  width: 140px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 10px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+label .icon {
+  font-size: 12px;
+}
+
+/* Custom range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+input[type="range"]:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(167, 139, 250, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 20px rgba(167, 139, 250, 0.7);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 10px rgba(167, 139, 250, 0.5);
+}
+
+/* Custom select */
+select {
+  width: 100%;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.4);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 11px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+select:hover, select:focus {
+  border-color: rgba(167, 139, 250, 0.5);
+  box-shadow: 0 0 15px rgba(167, 139, 250, 0.2);
+}
+
+select option {
+  background: #1a1a2e;
+  color: white;
+  padding: 8px;
+}
+
+/* Puff button */
+.puff-btn {
+  margin-top: auto;
+  padding: 10px;
+  background: linear-gradient(135deg, var(--flavor) 0%, #a78bfa 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px var(--flavor-glow);
+  position: relative;
+  overflow: hidden;
+}
+
+.puff-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.puff-btn:hover::before {
+  left: 100%;
+}
+
+.puff-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px var(--flavor-glow);
+}
+
+.puff-btn:active {
+  transform: scale(0.95);
+}
+
+/* SVG Effects */
+.coal {
+  filter: drop-shadow(0 0 calc(20px + 25px * var(--heat)) rgba(255, 100, 0, calc(0.4 + 0.6 * var(--heat))));
+  transition: all 0.4s ease;
+}
+
+.glass {
+  fill: url(#glassGrad);
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1.5;
+}
+
+.liquid {
+  fill: var(--flavor);
+  opacity: 0.85;
+  transition: fill 0.6s ease;
+  filter: drop-shadow(0 0 10px var(--flavor-glow));
+}
+
+.liquid-bubbles {
+  fill: rgba(255, 255, 255, 0.3);
+}
+
+.bubble {
+  animation: bubble 2s infinite ease-in-out;
+}
+
+@keyframes bubble {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-8px) scale(1.2); opacity: 1; }
+}
+
+.smoke-path {
+  fill: none;
+  stroke: rgba(255, 255, 255, var(--smoke));
+  stroke-width: 4;
+  stroke-linecap: round;
+  animation: smokeRise var(--pull-speed) infinite ease-out;
+  filter: blur(2px);
+}
+
+.smoke-path:nth-child(2) { animation-delay: -1s; stroke-width: 3; }
+.smoke-path:nth-child(3) { animation-delay: -2s; stroke-width: 5; }
+
+@keyframes smokeRise {
+  0% {
+    opacity: 0;
+    stroke-dashoffset: 100;
+    transform: translateY(0) scaleX(1);
+  }
+  20% { opacity: calc(0.8 * var(--smoke)); }
+  100% {
+    opacity: 0;
+    stroke-dashoffset: 0;
+    transform: translateY(-60px) scaleX(1.5);
   }
 }
 
-/* Controls */
-.controls{
-  background:rgba(255,255,255,.05);
-  border-radius:18px;
-  padding:20px;
-  backdrop-filter:blur(12px);
-  box-shadow:0 0 50px rgba(0,0,0,.4);
+.ember {
+  fill: #ff6b00;
+  animation: emberGlow 1s infinite alternate ease-in-out;
 }
 
-.control{
-  margin-bottom:18px;
+@keyframes emberGlow {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
-label{
-  font-size:13px;
-  opacity:.8;
-  display:block;
-  margin-bottom:6px;
+/* Hose glow effect */
+.hose {
+  stroke: #555;
+  stroke-width: 5;
+  fill: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
-input,select{
-  width:100%;
+.hose-tip {
+  fill: #888;
+  filter: drop-shadow(0 0 8px var(--flavor-glow));
 }
 
-select{
-  background:#111;
-  color:white;
-  border:none;
-  border-radius:8px;
-  padding:6px;
+/* Footer signature */
+footer {
+  text-align: center;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 10;
+  flex-shrink: 0;
 }
 
-/* Simulation */
-.simulation{
-  display:flex;
-  justify-content:center;
-  align-items:center;
+.signature {
+  font-size: 10px;
+  font-weight: 500;
+  background: linear-gradient(90deg, #f472b6, #a78bfa, #38bdf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s infinite linear;
+  background-size: 200% 100%;
 }
 
-svg{
-  width:100%;
-  max-width:360px;
-  height:auto;
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-/* Coal */
-.coal{
-  filter:drop-shadow(0 0 calc(35px * var(--heat)) rgba(255,80,0,.9));
-  transition:.4s;
+/* Desktop/Landscape adjustments */
+@media (min-width: 600px) and (min-height: 500px) {
+  .app {
+    padding: 12px;
+    gap: 15px;
+  }
+
+  .controls {
+    width: 180px;
+    padding: 15px;
+    gap: 12px;
+  }
+
+  label {
+    font-size: 11px;
+  }
+
+  .puff-btn {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .signature {
+    font-size: 11px;
+  }
 }
 
-/* Glass */
-.glass{
-  fill:url(#glassGrad);
-  stroke:rgba(255,255,255,.25);
-  stroke-width:2;
+/* Very small screens (landscape phones) */
+@media (max-height: 400px) {
+  header {
+    padding: 4px 8px;
+  }
+
+  h1 {
+    font-size: 12px;
+  }
+
+  .controls {
+    width: 120px;
+    padding: 6px;
+    gap: 4px;
+  }
+
+  label {
+    font-size: 8px;
+  }
+
+  input[type="range"] {
+    height: 4px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    width: 12px;
+    height: 12px;
+  }
+
+  select {
+    padding: 4px;
+    font-size: 9px;
+  }
+
+  .puff-btn {
+    padding: 6px;
+    font-size: 10px;
+  }
+
+  footer {
+    padding: 3px 8px;
+  }
+
+  .signature {
+    font-size: 8px;
+  }
 }
 
-/* Liquid */
-.liquid{
-  fill:var(--flavor);
-  opacity:.85;
-  transition:fill .6s;
+/* Puff animation overlay */
+.puff-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-/* Smoke */
-.smoke{
-  fill:none;
-  stroke:rgba(220,220,220,var(--smoke));
-  stroke-width:3;
-  animation:smoke 4s infinite ease-in-out;
+.puff-overlay.active {
+  opacity: 1;
 }
 
-@keyframes smoke{
-  0%{opacity:0;transform:translateY(0)}
-  30%{opacity:.6}
-  100%{opacity:0;transform:translateY(-90px)}
+.puff-smoke {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: puffExpand 1.5s ease-out forwards;
 }
 
-footer{
-  text-align:center;
-  font-size:12px;
-  opacity:.4;
-  margin:20px 0;
+@keyframes puffExpand {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<h1>Ahmed Chayech Shisha Simulation</h1>
+<!-- Background particles -->
+<div class="bg-particles" id="particles"></div>
+
+<!-- Puff overlay -->
+<div class="puff-overlay" id="puffOverlay"></div>
+
+<header>
+  <h1>✨ Ahmed Chayech Shisha Experience ✨</h1>
+</header>
 
 <div class="app">
+  <div class="simulation">
+    <svg viewBox="0 0 200 380" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <!-- Glass gradient -->
+        <linearGradient id="glassGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.15)"/>
+          <stop offset="30%" stop-color="rgba(255,255,255,0.05)"/>
+          <stop offset="70%" stop-color="rgba(255,255,255,0.08)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.2)"/>
+        </linearGradient>
+
+        <!-- Coal gradient -->
+        <radialGradient id="coalGrad" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0%" stop-color="#ffaa00"/>
+          <stop offset="50%" stop-color="#ff6600"/>
+          <stop offset="100%" stop-color="#cc3300"/>
+        </radialGradient>
+
+        <!-- Smoke blur filter -->
+        <filter id="smokeBlur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3"/>
+        </filter>
+
+        <!-- Glow filter -->
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- Smoke trails -->
+      <g class="smoke-container" filter="url(#smokeBlur)">
+        <path class="smoke-path" d="M100 45 Q85 25, 95 5 Q105 -15, 90 -35" stroke-dasharray="100"/>
+        <path class="smoke-path" d="M100 45 Q115 20, 105 0 Q95 -20, 110 -40" stroke-dasharray="100"/>
+        <path class="smoke-path" d="M100 45 Q100 25, 100 5 Q100 -15, 100 -35" stroke-dasharray="100"/>
+      </g>
+
+      <!-- Coal with embers -->
+      <g class="coal-group">
+        <circle cx="100" cy="55" r="16" class="coal" fill="url(#coalGrad)"/>
+        <circle cx="94" cy="52" r="2" class="ember"/>
+        <circle cx="106" cy="58" r="1.5" class="ember" style="animation-delay: 0.3s"/>
+        <circle cx="100" cy="50" r="1" class="ember" style="animation-delay: 0.6s"/>
+      </g>
+
+      <!-- Bowl -->
+      <path d="M65 70 Q100 35 135 70 L130 80 Q100 60 70 80 Z" fill="#3d3d3d"/>
+      <path d="M70 80 Q100 60 130 80 L128 85 Q100 70 72 85 Z" fill="#2a2a2a"/>
+
+      <!-- Stem -->
+      <rect x="96" y="80" width="8" height="130" fill="linear-gradient(90deg, #999 0%, #ccc 50%, #999 100%)" rx="2"/>
+      <rect x="94" y="85" width="12" height="8" fill="#888" rx="1"/>
+      <rect x="94" y="200" width="12" height="8" fill="#888" rx="1"/>
+
+      <!-- Glass Base -->
+      <path class="glass" d="M60 80 L75 320 Q100 350 125 320 L140 80 Q100 120 60 80 Z"/>
+
+      <!-- Water/Liquid -->
+      <ellipse cx="100" cy="280" rx="38" ry="35" class="liquid"/>
+
+      <!-- Bubbles -->
+      <g class="liquid-bubbles">
+        <circle cx="90" cy="275" r="3" class="bubble"/>
+        <circle cx="110" cy="280" r="2" class="bubble" style="animation-delay: 0.5s"/>
+        <circle cx="100" cy="270" r="2.5" class="bubble" style="animation-delay: 1s"/>
+        <circle cx="85" cy="285" r="1.5" class="bubble" style="animation-delay: 0.7s"/>
+        <circle cx="115" cy="275" r="2" class="bubble" style="animation-delay: 1.3s"/>
+      </g>
+
+      <!-- Inner glass reflection -->
+      <path d="M68 100 L78 300 Q80 310 82 300 L88 100" fill="rgba(255,255,255,0.08)"/>
+
+      <!-- Hose connection -->
+      <ellipse cx="130" cy="250" rx="8" ry="5" fill="#666"/>
+
+      <!-- Hose -->
+      <path class="hose" d="M138 250 Q160 260, 170 280 Q180 310, 190 320"/>
+
+      <!-- Hose tip -->
+      <ellipse cx="192" cy="322" rx="6" ry="4" class="hose-tip"/>
+      <rect x="186" y="318" width="12" height="8" rx="2" class="hose-tip"/>
+    </svg>
+  </div>
 
   <div class="controls">
     <div class="control">
-      <label>🔥 Coal Temperature</label>
+      <label><span class="icon">🔥</span> Heat</label>
       <input type="range" min="0" max="100" value="50" id="coalTemp">
     </div>
 
     <div class="control">
-      <label>🌈 Flavor</label>
+      <label><span class="icon">🎨</span> Flavor</label>
       <select id="flavor">
-        <option value="#ff4d6d">Double Apple</option>
-        <option value="#7b2cbf">Blueberry</option>
-        <option value="#2ec4b6">Mint</option>
-        <option value="#ff9f1c">Peach</option>
-        <option value="#e63946">Cherry</option>
+        <option value="#ff4d6d" data-glow="rgba(255,77,109,0.6)">Double Apple</option>
+        <option value="#8b5cf6" data-glow="rgba(139,92,246,0.6)">Blueberry</option>
+        <option value="#10b981" data-glow="rgba(16,185,129,0.6)">Mint</option>
+        <option value="#f59e0b" data-glow="rgba(245,158,11,0.6)">Peach</option>
+        <option value="#ef4444" data-glow="rgba(239,68,68,0.6)">Cherry</option>
+        <option value="#06b6d4" data-glow="rgba(6,182,212,0.6)">Ice Blue</option>
       </select>
     </div>
 
     <div class="control">
-      <label>💨 Smoke Density</label>
+      <label><span class="icon">💨</span> Smoke</label>
       <input type="range" min="10" max="100" value="60" id="smoke">
     </div>
 
     <div class="control">
-      <label>🌬 Pull Strength</label>
+      <label><span class="icon">🌬️</span> Pull</label>
       <input type="range" min="1" max="10" value="5" id="pull">
     </div>
+
+    <button class="puff-btn" id="puffBtn">
+      💨 Take a Puff
+    </button>
   </div>
-
-  <div class="simulation">
-    <svg viewBox="0 0 200 420">
-
-      <defs>
-        <linearGradient id="glassGrad" x1="0" x2="1">
-          <stop offset="0%" stop-color="rgba(255,255,255,.12)"/>
-          <stop offset="50%" stop-color="rgba(255,255,255,.03)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,.15)"/>
-        </linearGradient>
-      </defs>
-
-      <!-- Smoke -->
-      <path class="smoke" d="M100 40 C80 20,120 10,100 -20"/>
-      <path class="smoke" d="M90 55 C70 35,110 15,90 -15"/>
-
-      <!-- Coal -->
-      <circle cx="100" cy="65" r="18"
-        class="coal"
-        fill="rgb(255,90,0)"/>
-
-      <!-- Bowl -->
-      <path d="M60 85 Q100 40 140 85 Z" fill="#2c2c2c"/>
-
-      <!-- Stem -->
-      <rect x="96" y="85" width="8" height="150" fill="#aaa"/>
-
-      <!-- Liquid -->
-      <ellipse cx="100" cy="240" rx="40" ry="12" class="liquid"/>
-
-      <!-- Glass Base -->
-      <path class="glass"
-        d="M60 85 L78 360 Q100 395 122 360 L140 85 Z"/>
-
-      <!-- Hose -->
-      <path d="M120 320 C180 340,230 320,280 330"
-        stroke="#666" stroke-width="6" fill="none"/>
-    </svg>
-  </div>
-
 </div>
 
-<footer>Educational visual simulation</footer>
+<footer>
+  <div class="signature">Made with shisha love by Fares AI to Ahmed Chayech 💜</div>
+</footer>
 
 <script>
-const root=document.documentElement;
-const coal=document.querySelector(".coal");
+const root = document.documentElement;
+const coal = document.querySelector('.coal');
+const puffBtn = document.getElementById('puffBtn');
+const puffOverlay = document.getElementById('puffOverlay');
+const particlesContainer = document.getElementById('particles');
 
-coalTemp.oninput=e=>{
-  const h=e.target.value/100;
-  root.style.setProperty("--heat",h);
-  coal.setAttribute("fill",`rgb(${200+h*55},${80+h*30},0)`);
-};
+// Create background particles
+for (let i = 0; i < 20; i++) {
+  const particle = document.createElement('div');
+  particle.className = 'particle';
+  particle.style.left = Math.random() * 100 + '%';
+  particle.style.animationDelay = Math.random() * 15 + 's';
+  particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+  particlesContainer.appendChild(particle);
+}
 
-flavor.onchange=e=>{
-  root.style.setProperty("--flavor",e.target.value);
-};
+// Coal temperature
+document.getElementById('coalTemp').addEventListener('input', (e) => {
+  const h = e.target.value / 100;
+  root.style.setProperty('--heat', h);
+  const r = Math.round(200 + h * 55);
+  const g = Math.round(60 + h * 40);
+  coal.style.fill = `rgb(${r}, ${g}, 0)`;
+});
 
-smoke.oninput=e=>{
-  root.style.setProperty("--smoke",e.target.value/100);
-};
+// Flavor selection
+document.getElementById('flavor').addEventListener('change', (e) => {
+  const option = e.target.selectedOptions[0];
+  const color = option.value;
+  const glow = option.dataset.glow;
+  root.style.setProperty('--flavor', color);
+  root.style.setProperty('--flavor-glow', glow);
+});
 
-pull.oninput=e=>{
-  const d=6-e.target.value*.4;
-  document.querySelectorAll(".smoke")
-    .forEach(s=>s.style.animationDuration=d+"s");
-};
+// Smoke density
+document.getElementById('smoke').addEventListener('input', (e) => {
+  root.style.setProperty('--smoke', e.target.value / 100);
+});
+
+// Pull strength
+document.getElementById('pull').addEventListener('input', (e) => {
+  const duration = 6 - e.target.value * 0.4;
+  root.style.setProperty('--pull-speed', duration + 's');
+});
+
+// Puff button effect
+puffBtn.addEventListener('click', () => {
+  // Create puff smoke effect
+  puffOverlay.innerHTML = '';
+  puffOverlay.classList.add('active');
+
+  for (let i = 0; i < 5; i++) {
+    const smoke = document.createElement('div');
+    smoke.className = 'puff-smoke';
+    smoke.style.left = (30 + Math.random() * 40) + '%';
+    smoke.style.top = (30 + Math.random() * 40) + '%';
+    smoke.style.animationDelay = (i * 0.1) + 's';
+    puffOverlay.appendChild(smoke);
+  }
+
+  // Intensify coal
+  const currentHeat = parseFloat(getComputedStyle(root).getPropertyValue('--heat')) || 0.5;
+  root.style.setProperty('--heat', Math.min(1, currentHeat + 0.3));
+
+  // Intensify smoke
+  const currentSmoke = parseFloat(getComputedStyle(root).getPropertyValue('--smoke')) || 0.6;
+  root.style.setProperty('--smoke', Math.min(1, currentSmoke + 0.2));
+
+  // Reset after animation
+  setTimeout(() => {
+    puffOverlay.classList.remove('active');
+    root.style.setProperty('--heat', currentHeat);
+    root.style.setProperty('--smoke', currentSmoke);
+  }, 1500);
+
+  // Button feedback
+  puffBtn.style.transform = 'scale(0.9)';
+  setTimeout(() => {
+    puffBtn.style.transform = '';
+  }, 150);
+});
+
+// Touch feedback for mobile
+document.querySelectorAll('input[type="range"]').forEach(slider => {
+  slider.addEventListener('touchstart', () => {
+    slider.style.transform = 'scaleY(1.2)';
+  });
+  slider.addEventListener('touchend', () => {
+    slider.style.transform = '';
+  });
+});
 </script>
 
 </body>

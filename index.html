@@ -19,6 +19,7 @@ body{
   font-family:system-ui,Inter,Arial;
   background:radial-gradient(circle at top,#1b1b1b,#050505);
   color:#eee;
+  min-height:100vh;
 }
 
 h1{
@@ -26,6 +27,77 @@ h1{
   font-weight:600;
   letter-spacing:.8px;
   margin:20px 10px;
+}
+
+/* Start Screen */
+.start-screen{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:20px;
+}
+
+.start-screen h1{
+  font-size:2.5rem;
+  margin-bottom:10px;
+}
+
+.start-screen p{
+  opacity:.7;
+  margin-bottom:40px;
+  font-size:1.1rem;
+}
+
+.flavor-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+  gap:20px;
+  max-width:700px;
+  width:100%;
+}
+
+.flavor-card{
+  background:rgba(255,255,255,.05);
+  border-radius:16px;
+  padding:25px 15px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .3s ease;
+  border:2px solid transparent;
+  backdrop-filter:blur(8px);
+}
+
+.flavor-card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(255,255,255,.3);
+  box-shadow:0 10px 40px rgba(0,0,0,.4);
+}
+
+.flavor-card:active{
+  transform:scale(.97);
+}
+
+.flavor-circle{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  margin:0 auto 15px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+
+.flavor-card span{
+  font-size:.95rem;
+  font-weight:500;
+}
+
+.game-screen{
+  display:none;
+}
+
+.game-screen.active{
+  display:block;
 }
 
 .app{
@@ -134,6 +206,38 @@ footer{
 
 <body>
 
+<!-- Start Screen: Flavor Selection -->
+<div class="start-screen" id="startScreen">
+  <h1>Ahmed Chayech Shisha</h1>
+  <p>Choose your flavor to begin</p>
+
+  <div class="flavor-grid">
+    <div class="flavor-card" data-flavor="#ff4d6d" data-name="Double Apple">
+      <div class="flavor-circle" style="background:#ff4d6d"></div>
+      <span>Double Apple</span>
+    </div>
+    <div class="flavor-card" data-flavor="#7b2cbf" data-name="Blueberry">
+      <div class="flavor-circle" style="background:#7b2cbf"></div>
+      <span>Blueberry</span>
+    </div>
+    <div class="flavor-card" data-flavor="#2ec4b6" data-name="Mint">
+      <div class="flavor-circle" style="background:#2ec4b6"></div>
+      <span>Mint</span>
+    </div>
+    <div class="flavor-card" data-flavor="#ff9f1c" data-name="Peach">
+      <div class="flavor-circle" style="background:#ff9f1c"></div>
+      <span>Peach</span>
+    </div>
+    <div class="flavor-card" data-flavor="#e63946" data-name="Cherry">
+      <div class="flavor-circle" style="background:#e63946"></div>
+      <span>Cherry</span>
+    </div>
+  </div>
+</div>
+
+<!-- Game Screen -->
+<div class="game-screen" id="gameScreen">
+
 <h1>Ahmed Chayech Shisha Simulation</h1>
 
 <div class="app">
@@ -207,12 +311,37 @@ footer{
 
 </div>
 
+</div><!-- end game-screen -->
+
 <footer>Educational visual simulation</footer>
 
 <script>
 const root=document.documentElement;
+const startScreen=document.getElementById("startScreen");
+const gameScreen=document.getElementById("gameScreen");
+const flavorCards=document.querySelectorAll(".flavor-card");
+const flavorSelect=document.getElementById("flavor");
 const coal=document.querySelector(".coal");
 
+// Handle flavor selection at start
+flavorCards.forEach(card=>{
+  card.onclick=()=>{
+    const color=card.dataset.flavor;
+    const name=card.dataset.name;
+
+    // Set the flavor
+    root.style.setProperty("--flavor",color);
+
+    // Update dropdown to match
+    flavorSelect.value=color;
+
+    // Transition to game screen
+    startScreen.style.display="none";
+    gameScreen.classList.add("active");
+  };
+});
+
+// Game controls
 coalTemp.oninput=e=>{
   const h=e.target.value/100;
   root.style.setProperty("--heat",h);
